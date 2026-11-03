@@ -976,6 +976,120 @@ function getFilteredVideos() {
   });
 }
 
+/* Thumbnail dari frame nyata video (menggantikan thumbnail Drive yang hitam).
+   Dimuat bertahap (maks 2 bersamaan) dan hanya saat kartu terlihat agar ringan. */
+const thumbQueue = [];
+let thumbActive = 0;
+const THUMB_CONCURRENCY = 2;
+const thumbObserver = ('IntersectionObserver' in window)
+  ? new IntersectionObserver((entries) => {
+      entries.forEach(en => {
+        if (en.isIntersecting) {
+          thumbObserver.unobserve(en.target);
+          if (en.target._startThumb) en.target._startThumb();
+        }
+      });
+    }, { rootMargin: '200px' })
+  : null;
+
+function runThumbQueue() {
+  while (thumbActive < THUMB_CONCURRENCY && thumbQueue.length > 0) {
+    const job = thumbQueue.shift();
+    thumbActive++;
+    job(() => { thumbActive--; runThumbQueue(); });
+  }
+}
+
+function queueStreamThumbnail(container, fallbackEl, driveId) {
+  const endpoint = (window.location.protocol === 'file:')
+    ? `http://localhost:3456/api/stream?id=${driveId}`
+    : `/api/stream?id=${driveId}`;
+
+  const start = () => {
+    thumbQueue.push((done) => {
+      const pv = document.createElement('video');
+      pv.className = 'thumbnail-preview-video';
+      pv.muted = true;
+      pv.defaultMuted = true;
+      pv.playsInline = true;
+      pv.preload = 'auto';
+      pv.setAttribute('playsinline', '');
+      pv.setAttribute('muted', '');
+      pv.tabIndex = -1;
+
+      let finished = false;
+      const finish = (ok) => {
+        if (finished) return;
+        finished = true;
+        clearTimeout(timer);
+        if (ok) {
+          pv.style.opacity = '1';
+          fallbackEl.style.display = 'none';
+          pv.pause();
+        } else {
+          pv.remove();
+        }
+        // Lepas koneksi streaming agar tidak membebani jaringan
+        pv.removeAttribute('src');
+        if (!ok) pv.load();
+        done();
+      };
+      const timer = setTimeout(() => finish(false), 12000);
+
+      pv.addEventListener('loadedmetadata', () => {
+        const d = pv.duration || 10;
+        // Hindari frame awal yang gelap (fade-in): ambil di ~15% durasi, 1.5 - 8 detik
+        pv.currentTime = Math.min(8, Math.max(1.5, d * 0.15));
+      });
+      pv.addEventListener('seeked', () => {
+        // Pastikan frame sudah ter-render sebelum disalin
+        const show = () => {
+          // Bekukan frame: ganti ke canvas agar koneksi bisa ditutup
+          try {
+            const c = document.createElement('canvas');
+            c.width = Math.min(640, pv.videoWidth || 640);
+            c.height = Math.round(c.width * ((pv.videoHeight || 360) / (pv.videoWidth || 640)));
+            c.getContext('2d').drawImage(pv, 0, 0, c.width, c.height);
+            const img = document.createElement('img');
+            img.className = 'thumbnail-preview-video';
+            img.alt = '';
+            img.src = c.toDataURL('image/jpeg', 0.8);
+            container.appendChild(img);
+            pv.remove();
+            requestAnimationFrame(() => { img.style.opacity = '1'; });
+            fallbackEl.style.display = 'none';
+            finished = true;
+            clearTimeout(timer);
+            pv.removeAttribute('src');
+            done();
+          } catch (e) {
+            finish(true);
+          }
+        };
+        if (pv.requestVideoFrameCallback) {
+          pv.requestVideoFrameCallback(show);
+          setTimeout(() => { if (!finished) show(); }, 600);
+        } else {
+          setTimeout(show, 150);
+        }
+      });
+      pv.addEventListener('error', () => finish(false));
+
+      container.appendChild(pv);
+      pv.src = endpoint;
+      pv.load();
+    });
+    runThumbQueue();
+  };
+
+  if (thumbObserver) {
+    container._startThumb = start;
+    thumbObserver.observe(container);
+  } else {
+    start();
+  }
+}
+
 function renderVideoGrid() {
   if (!videoGridEl) return;
   const filtered = getFilteredVideos();
@@ -1056,7 +1170,7 @@ function renderVideoGrid() {
 
     const driveId = getGoogleDriveId(video);
     if (driveId) {
-      // 1. Google Drive Thumbnail Otomatis jika ada driveId / driveUrl
+      // 1. Thumbnail Google Drive sebagai placeholder cepat (bisa hitam jika frame pertama gelap)
       const driveThumb = document.createElement('img');
       driveThumb.className = 'thumbnail-img';
       driveThumb.src = `https://drive.google.com/thumbnail?id=${driveId}&sz=w640`;
@@ -1068,9 +1182,11 @@ function renderVideoGrid() {
       };
       driveThumb.onerror = () => {
         driveThumb.remove();
-        loadLocalFrameSnapshot();
       };
       thumbContainer.appendChild(driveThumb);
+
+      // 2. Ambil frame nyata dari tengah-awal video (menggantikan thumbnail hitam), dimuat bertahap saat kartu terlihat
+      queueStreamThumbnail(thumbContainer, fallbackEl, driveId);
     } else if (video.poster) {
       // 2. Custom Poster Image jika ada
       const img = document.createElement('img');

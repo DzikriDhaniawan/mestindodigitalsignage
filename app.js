@@ -1566,7 +1566,7 @@ if (mainVideoEl) {
 
   mainVideoEl.addEventListener('play', () => {
     syncPlayPauseUI(true);
-    showPlayerOverlay();
+    if (isPlayerActive) showPlayerOverlay();
   });
 
   mainVideoEl.addEventListener('pause', () => {
@@ -1577,11 +1577,21 @@ if (mainVideoEl) {
 
 // Interaction listeners untuk auto-hide kontrol pemutar saat video berputar (hanya mouse & keyboard agar klik video tidak konflik)
 if (playerModalEl) {
-  ['mousemove', 'keydown'].forEach(evt => {
-    playerModalEl.addEventListener(evt, () => {
-      if (isPlayerActive) showPlayerOverlay();
-    }, { passive: true });
-  });
+  // Hanya mouse asli (bukan emulasi sentuhan) yang memunculkan menu saat digerakkan,
+  // agar tap di layar sentuh tidak memunculkan lalu langsung menyembunyikan menu.
+  let lastTouchAt = 0;
+  playerModalEl.addEventListener('touchstart', () => { lastTouchAt = Date.now(); }, { passive: true });
+  playerModalEl.addEventListener('pointerdown', (e) => {
+    if (e.pointerType !== 'mouse') lastTouchAt = Date.now();
+  }, { passive: true });
+  playerModalEl.addEventListener('mousemove', () => {
+    if (!isPlayerActive) return;
+    if (Date.now() - lastTouchAt < 1000) return;
+    showPlayerOverlay();
+  }, { passive: true });
+  playerModalEl.addEventListener('keydown', () => {
+    if (isPlayerActive) showPlayerOverlay();
+  }, { passive: true });
 }
 
 /* ==========================================================================

@@ -56,6 +56,11 @@ const playerLoopIcon = document.getElementById('player-loop-icon');
 const playerLoopLabel = document.getElementById('player-loop-label');
 const playerPrevBtn = document.getElementById('player-prev-btn');
 const playerNextBtn = document.getElementById('player-next-btn');
+const playerPlayPauseBtn = document.getElementById('player-play-pause-btn');
+const playerPlayPauseIcon = document.getElementById('player-play-pause-icon');
+const playerPlayPauseLabel = document.getElementById('player-play-pause-label');
+const playerFsBtn = document.getElementById('player-fs-btn');
+const playerFsIcon = document.getElementById('player-fs-icon');
 const centerPlayBtn = document.getElementById('player-center-play-btn');
 const playerProgressContainer = document.getElementById('player-progress-container');
 const playerProgressBar = document.getElementById('player-progress-bar');
@@ -1167,6 +1172,60 @@ function hideCenterPlayBtn() {
   }
 }
 
+function syncPlayPauseUI(isPlaying) {
+  if (isPlaying) {
+    hideCenterPlayBtn();
+    if (playerPlayPauseBtn) {
+      playerPlayPauseBtn.classList.remove('is-paused');
+      playerPlayPauseBtn.title = 'Jeda Video (Spasi)';
+      playerPlayPauseBtn.setAttribute('aria-label', 'Jeda Video');
+    }
+    if (playerPlayPauseIcon) {
+      playerPlayPauseIcon.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
+    }
+    if (playerPlayPauseLabel) {
+      playerPlayPauseLabel.textContent = 'Jeda';
+    }
+  } else {
+    showCenterPlayBtn();
+    if (playerPlayPauseBtn) {
+      playerPlayPauseBtn.classList.add('is-paused');
+      playerPlayPauseBtn.title = 'Putar Video (Spasi)';
+      playerPlayPauseBtn.setAttribute('aria-label', 'Putar Video');
+    }
+    if (playerPlayPauseIcon) {
+      playerPlayPauseIcon.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg>';
+    }
+    if (playerPlayPauseLabel) {
+      playerPlayPauseLabel.textContent = 'Putar';
+    }
+  }
+}
+
+function togglePlayPause() {
+  if (!mainVideoEl) return;
+  if (mainVideoEl.paused) {
+    mainVideoEl.play().then(() => {
+      syncPlayPauseUI(true);
+      showPlayerOverlay();
+    }).catch(err => {
+      console.warn("Play blocked:", err);
+      syncPlayPauseUI(false);
+    });
+  } else {
+    mainVideoEl.pause();
+    syncPlayPauseUI(false);
+    showPlayerOverlay();
+  }
+}
+
+function hidePlayerOverlay() {
+  clearTimeout(playerControlsTimeout);
+  const header = document.querySelector('.player-header');
+  if (header) header.classList.add('overlay-hidden');
+  if (playerProgressContainer) playerProgressContainer.classList.add('overlay-hidden');
+}
+
 function showPlayerOverlay() {
   const header = document.querySelector('.player-header');
   if (header) {
@@ -1177,14 +1236,28 @@ function showPlayerOverlay() {
   }
   clearTimeout(playerControlsTimeout);
 
-  // Auto-hide tombol kontrol & progress bar setelah 2.5 detik saat video sedang berputar
+  // Auto-hide tombol kontrol & progress bar setelah 3.5 detik saat video sedang berputar
   if (isPlayerActive && mainVideoEl && !mainVideoEl.paused) {
     playerControlsTimeout = setTimeout(() => {
       if (isPlayerActive && mainVideoEl && !mainVideoEl.paused) {
-        if (header) header.classList.add('overlay-hidden');
-        if (playerProgressContainer) playerProgressContainer.classList.add('overlay-hidden');
+        hidePlayerOverlay();
       }
-    }, 2500);
+    }, 3500);
+  }
+}
+
+function togglePlayerOverlay() {
+  const header = document.querySelector('.player-header');
+  const isHidden = header ? header.classList.contains('overlay-hidden') : false;
+  if (isHidden) {
+    showPlayerOverlay();
+  } else {
+    // Jika tombol menu sedang tampil dan video sedang berputar, klik layar menyembunyikan menu untuk tampilan bersih
+    if (mainVideoEl && !mainVideoEl.paused) {
+      hidePlayerOverlay();
+    } else {
+      showPlayerOverlay();
+    }
   }
 }
 
@@ -1224,11 +1297,11 @@ function playVideo(video) {
     const playPromise = mainVideoEl.play();
     if (playPromise !== undefined) {
       playPromise.then(() => {
-        hideCenterPlayBtn();
+        syncPlayPauseUI(true);
         showPlayerOverlay();
       }).catch(err => {
-        console.warn("Autoplay ditahan browser, klik/sentuh layar untuk memutar:", err);
-        showCenterPlayBtn();
+        console.warn("Autoplay ditahan browser, klik tombol putar untuk memutar:", err);
+        syncPlayPauseUI(false);
       });
     }
 
@@ -1241,11 +1314,11 @@ function playVideo(video) {
         setTimeout(() => {
           if (currentPlayingVideo === video && mainVideoEl) {
             mainVideoEl.src = `${sourceInfo.src}&retry=${Date.now()}`;
-            mainVideoEl.play().catch(() => showCenterPlayBtn());
+            mainVideoEl.play().then(() => syncPlayPauseUI(true)).catch(() => syncPlayPauseUI(false));
           }
         }, 400);
       } else {
-        showCenterPlayBtn();
+        syncPlayPauseUI(false);
       }
     };
   }
@@ -1378,20 +1451,66 @@ if (playerPrevBtn) {
   playerPrevBtn.onclick = playPrevVideoInFolder;
 }
 
+// Play / Pause button click listener
+if (playerPlayPauseBtn) {
+  playerPlayPauseBtn.onclick = (e) => {
+    e.stopPropagation();
+    togglePlayPause();
+  };
+}
+
 // Center play button click listener
 if (centerPlayBtn) {
   centerPlayBtn.onclick = (e) => {
     e.stopPropagation();
-    if (mainVideoEl) {
-      mainVideoEl.play().then(() => {
-        hideCenterPlayBtn();
-        showPlayerOverlay();
-      }).catch(err => console.warn(err));
-    }
+    togglePlayPause();
   };
 }
 
-// Klik video atau container untuk toggle Play / Pause
+// Fullscreen button controller
+function toggleVideoFullscreen() {
+  const isFs = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+  if (!isFs) {
+    const docEl = document.documentElement;
+    if (docEl.requestFullscreen) {
+      docEl.requestFullscreen().catch(() => {});
+    } else if (docEl.webkitRequestFullscreen) {
+      docEl.webkitRequestFullscreen();
+    } else if (mainVideoEl && mainVideoEl.webkitEnterFullscreen) {
+      mainVideoEl.webkitEnterFullscreen();
+    }
+  } else {
+    if (document.exitFullscreen) {
+      document.exitFullscreen().catch(() => {});
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen();
+    }
+  }
+  showPlayerOverlay();
+}
+
+function updateVideoFullscreenUI() {
+  const isFs = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+  if (!playerFsIcon) return;
+  if (isFs) {
+    playerFsIcon.innerHTML = '<path d="M4 14h6m0 0v6m0-6L3 21m17-7h-6m0 0v6m0-6l7 7M10 10V4m0 6H4m6 0L3 3m10 7V4m0 6h6m-6 0l7-7"/>';
+    if (playerFsBtn) playerFsBtn.title = 'Keluar Layar Penuh (F)';
+  } else {
+    playerFsIcon.innerHTML = '<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>';
+    if (playerFsBtn) playerFsBtn.title = 'Layar Penuh (F)';
+  }
+}
+document.addEventListener('fullscreenchange', updateVideoFullscreenUI);
+document.addEventListener('webkitfullscreenchange', updateVideoFullscreenUI);
+
+if (playerFsBtn) {
+  playerFsBtn.onclick = (e) => {
+    e.stopPropagation();
+    toggleVideoFullscreen();
+  };
+}
+
+// Klik area video: HANYA menampilkan / menyembunyikan tombol menu kontrol, TIDAK langsung pause / play
 const videoContainerEl = document.querySelector('.video-container');
 if (videoContainerEl) {
   videoContainerEl.onclick = (e) => {
@@ -1399,18 +1518,7 @@ if (videoContainerEl) {
     if (e.target === centerPlayBtn || (centerPlayBtn && centerPlayBtn.contains(e.target))) return;
     if (mainIframeEl && mainIframeEl.style.display !== 'none') return;
 
-    if (mainVideoEl) {
-      if (mainVideoEl.paused) {
-        mainVideoEl.play().then(() => {
-          hideCenterPlayBtn();
-          showPlayerOverlay();
-        }).catch(err => console.warn(err));
-      } else {
-        mainVideoEl.pause();
-        showCenterPlayBtn();
-        showPlayerOverlay();
-      }
-    }
+    togglePlayerOverlay();
   };
 }
 
@@ -1457,20 +1565,22 @@ if (mainVideoEl) {
   });
 
   mainVideoEl.addEventListener('play', () => {
-    hideCenterPlayBtn();
+    syncPlayPauseUI(true);
     showPlayerOverlay();
   });
 
   mainVideoEl.addEventListener('pause', () => {
-    showCenterPlayBtn();
+    syncPlayPauseUI(false);
     showPlayerOverlay();
   });
 }
 
-// Interaction listeners untuk auto-hide kontrol pemutar saat video berputar
+// Interaction listeners untuk auto-hide kontrol pemutar saat video berputar (hanya mouse & keyboard agar klik video tidak konflik)
 if (playerModalEl) {
-  ['touchstart', 'mousemove', 'click', 'keydown'].forEach(evt => {
-    playerModalEl.addEventListener(evt, showPlayerOverlay, { passive: true });
+  ['mousemove', 'keydown'].forEach(evt => {
+    playerModalEl.addEventListener(evt, () => {
+      if (isPlayerActive) showPlayerOverlay();
+    }, { passive: true });
   });
 }
 
@@ -1523,17 +1633,20 @@ window.addEventListener('keydown', (e) => {
       playPrevVideoInFolder();
       return;
     }
-    if (e.key === ' ' || e.key === 'Enter') {
+    if (e.key === 'f' || e.key === 'F') {
+      e.preventDefault();
+      toggleVideoFullscreen();
+      return;
+    }
+    if (e.key === ' ' || e.key === 'Enter' || e.key === 'k' || e.key === 'K') {
       if (document.activeElement !== playerBackBtn && 
           document.activeElement !== playerLoopBtn && 
           document.activeElement !== playerNextBtn && 
-          document.activeElement !== playerPrevBtn) {
+          document.activeElement !== playerPrevBtn &&
+          document.activeElement !== playerPlayPauseBtn &&
+          document.activeElement !== playerFsBtn) {
         e.preventDefault();
-        if (mainVideoEl.paused) {
-          mainVideoEl.play();
-        } else {
-          mainVideoEl.pause();
-        }
+        togglePlayPause();
       }
     }
     return;

@@ -391,14 +391,29 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="19 20 9 12 19 4 19 20"/><rect x="5" y="4" width="2" height="16"/></svg>
         </button>
 
-        <!-- Tombol Pengatur Loop (1 Video / Folder Ini / Tanpa Loop) -->
-        <button type="button" class="player-loop-toggle-btn active-single" id="player-loop-btn" title="Klik untuk Mengganti Mode Loop" aria-label="Ganti Mode Loop">
-          <span id="player-loop-icon"></span>
-          <span id="player-loop-label">Loop: 1 Video</span>
+        <!-- Tombol Putar / Jeda Video Utama -->
+        <button type="button" class="player-play-pause-btn" id="player-play-pause-btn" title="Jeda / Putar Video" aria-label="Jeda Video">
+          <span id="player-play-pause-icon">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+          </span>
+          <span id="player-play-pause-label" class="player-btn-label">Jeda</span>
         </button>
 
         <button type="button" class="player-tool-btn" id="player-next-btn" title="Video Berikutnya di Folder Ini" aria-label="Berikutnya">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="5 4 15 12 5 20 5 4"/><rect x="17" y="4" width="2" height="16"/></svg>
+        </button>
+
+        <!-- Tombol Pengatur Loop (1 Video / Folder Ini / Tanpa Loop) -->
+        <button type="button" class="player-loop-toggle-btn active-single" id="player-loop-btn" title="Klik untuk Mengganti Mode Loop" aria-label="Ganti Mode Loop">
+          <span id="player-loop-icon"></span>
+          <span id="player-loop-label" class="player-btn-label">Loop: 1 Video</span>
+        </button>
+
+        <!-- Tombol Layar Penuh (Fullscreen) -->
+        <button type="button" class="player-tool-btn" id="player-fs-btn" title="Layar Penuh (F)" aria-label="Layar Penuh">
+          <svg id="player-fs-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+          </svg>
         </button>
       </div>
 

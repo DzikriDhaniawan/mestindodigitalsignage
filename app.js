@@ -1133,37 +1133,17 @@ function renderVideoGrid() {
 /* ==========================================================================
    4. VIDEO PLAYER MODAL & LOOP CONTROLS
    ========================================================================== */
-/* Helper: Gunakan link Google Drive melalui Stream Proxy (/api/stream) agar bermain di <video> asli (Pause, Loop, Progress Bar, Auto-hide 100% aktif) */
+/* Helper: 100% menggunakan link Google Drive melalui Stream Proxy (/api/stream) agar bermain langsung di <video> asli */
 function resolveVideoSource(video) {
   const driveId = getGoogleDriveId(video);
-  if (driveId) {
-    // Jika dibuka dari file:/// di lokal, arahkan ke local stream proxy port 3456.
-    // Jika dibuka di Vercel / http(s), gunakan endpoint /api/stream relatif.
-    const streamEndpoint = (window.location.protocol === 'file:')
-      ? `http://localhost:3456/api/stream?id=${driveId}`
-      : `/api/stream?id=${driveId}`;
+  const streamEndpoint = (window.location.protocol === 'file:')
+    ? `http://localhost:3456/api/stream?id=${driveId}`
+    : `/api/stream?id=${driveId}`;
 
-    return {
-      type: 'drive-stream',
-      src: streamEndpoint,
-      previewUrl: `https://drive.google.com/file/d/${driveId}/preview`,
-      driveId: driveId,
-      localFallback: video.localFile || (video.file && !video.file.startsWith('http') ? video.file : null)
-    };
-  }
-
-  let videoPath = video.file;
-  if (!videoPath || videoPath.startsWith('http')) {
-    if (video.localFile) {
-      videoPath = video.localFile;
-    } else if (video.category && video.description) {
-      videoPath = `videos/${video.category}/${video.description}`;
-    }
-  }
   return {
-    type: 'local',
-    src: videoPath || video.localFile,
-    driveId: null
+    type: 'drive-stream',
+    src: streamEndpoint,
+    driveId: driveId
   };
 }
 
@@ -1252,20 +1232,18 @@ function playVideo(video) {
       });
     }
 
-    // Fallback otomatis jika stream proxy lokal belum menyala saat dibuka via file:///
-    let triedLocalFallback = false;
+    // Retry otomatis sekali pada <video> asli jika jaringan sempat jeda (tanpa pernah membuka iframe Drive)
+    let retriedStream = false;
     mainVideoEl.onerror = (e) => {
       console.warn("Video stream error:", e);
-      if (!triedLocalFallback && sourceInfo.localFallback && window.location.protocol === 'file:') {
-        triedLocalFallback = true;
-        mainVideoEl.src = sourceInfo.localFallback;
-        mainVideoEl.play().catch(() => showCenterPlayBtn());
-      } else if (sourceInfo.driveId && mainIframeEl) {
-        console.warn("Fallback ke iframe preview Google Drive...");
-        mainVideoEl.style.display = 'none';
-        hideCenterPlayBtn();
-        mainIframeEl.style.display = 'block';
-        mainIframeEl.src = sourceInfo.previewUrl;
+      if (!retriedStream && sourceInfo.driveId) {
+        retriedStream = true;
+        setTimeout(() => {
+          if (currentPlayingVideo === video && mainVideoEl) {
+            mainVideoEl.src = `${sourceInfo.src}&retry=${Date.now()}`;
+            mainVideoEl.play().catch(() => showCenterPlayBtn());
+          }
+        }, 400);
       } else {
         showCenterPlayBtn();
       }

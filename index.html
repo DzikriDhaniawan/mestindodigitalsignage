@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="referrer" content="no-referrer">
+  <title>Mestindo - Digital Signage Kiosk</title>
+
+  <!-- Google Fonts: Poppins (Heading) & Open Sans (Body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-active-view="home">
+
+  <!-- Main Signage App Container -->
+  <div class="signage-app">
+
+    <!-- Top Header Bar (Hanya Logo Mestindo, Navigasi Utama, & Tombol Aksi) -->
+    <header class="signage-header">
+      <div class="brand-section">
+        <img src="logo_mestindo.webp" alt="PT Mest Indonesia" class="brand-logo-img">
+      </div>
+
+      <!-- Quick Nav Tabs for Fast Switching -->
+      <nav class="portal-nav" id="portal-nav" aria-label="Navigasi Menu Utama">
+        <button type="button" class="portal-nav-btn active" id="nav-btn-home" data-view="home" title="Halaman Pilihan Utama">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+          </svg>
+          <span>Menu Utama</span>
+        </button>
+        <button type="button" class="portal-nav-btn" id="nav-btn-about-us" data-view="about-us" title="Tentang PT Mest Indonesia">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+          <span>About Us</span>
+        </button>
+        <button type="button" class="portal-nav-btn" id="nav-btn-galleries" data-view="galleries" title="Galeri &amp; Edukasi Sawit">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+            <polyline points="21 15 16 10 5 21"></polyline>
+          </svg>
+          <span>Galleries</span>
+        </button>
+        <button type="button" class="portal-nav-btn" id="nav-btn-catalog" data-view="catalog" title="Katalog Produk &amp; Buku Saku 2026">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+          </svg>
+          <span>Catalog</span>
+        </button>
+      </nav>
+
+      <!-- Right Header: Action Buttons -->
+      <div class="header-right">
+        <div class="header-actions">
+          <button type="button" class="icon-btn" id="refresh-btn" title="Segarkan Halaman (F5)" aria-label="Segarkan">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+            </svg>
+          </button>
+          <button type="button" class="icon-btn" id="fullscreen-btn" title="Layar Penuh Aplikasi (F11)" aria-label="Layar Penuh">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- =========================================================================
+         VIEW 1: LANDING PAGE PORTAL (HERO BANNER + 3 PILIHAN UTAMA)
+         ========================================================================= -->
+    <section class="portal-landing-view" id="portal-landing-view">
+
+      <!-- Hero Banner -->
+      <div class="portal-hero-banner">
+        <div class="hero-content">
+          <h1 class="hero-title">SOLUSI NUTRISI UNTUK MASA DEPAN</h1>
+          <div class="hero-accent-line" aria-hidden="true"></div>
+          <p class="hero-desc">Bersama <strong>MESTINDO</strong>, untuk ketahanan pangan dan kehidupan yang lebih baik.</p>
+        </div>
+      </div>
+
+      <!-- 3 Primary Cards Container -->
+      <div class="portal-cards-container">
+
+        <!-- Card 1: About Us -->
+        <article class="portal-card" id="card-option-about-us" tabindex="0" role="button" aria-label="Buka About Us">
+          <div class="card-left-col">
+            <div class="card-icon-bubble">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+            </div>
+            <div class="card-text-body">
+              <div class="card-title-row">
+                <h2 class="card-title">About Us</h2>
+              </div>
+              <p class="card-kicker">PEOPLE &bull; VALUES &bull; IMPACT</p>
+              <p class="card-desc">Profil perusahaan, standar mutu pabrik &amp; tur fasilitas NPK modern.</p>
+              <div class="card-feature-pills">
+                <span>Company Profile</span>
+                <span>Fasilitas Pabrik</span>
+                <span>Standar Mutu</span>
+              </div>
+            </div>
+          </div>
+          <div class="card-right-col">
+            <div class="card-photo-wrapper">
+              <img src="assets/about-us.jpg" alt="About Us" class="card-photo-img" loading="eager">
+            </div>
+            <div class="card-circle-arrow" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </div>
+          </div>
+        </article>
+
+        <!-- Card 2: Catalog -->
+        <article class="portal-card" id="card-option-catalog" tabindex="0" role="button" aria-label="Buka Catalog">
+          <div class="card-left-col">
+            <div class="card-icon-bubble">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                <line x1="12" y1="22.08" x2="12" y2="12"></line>
+              </svg>
+            </div>
+            <div class="card-text-body">
+              <div class="card-title-row">
+                <h2 class="card-title">Catalog</h2>
+              </div>
+              <p class="card-kicker">PRODUCTS &bull; SOLUTIONS &bull; QUALITY</p>
+              <p class="card-desc">Buku Saku 2026 interaktif (82 halaman), spesifikasi pupuk NPK, Tunggal &amp; CRF.</p>
+              <div class="card-feature-pills">
+                <span>Pupuk NPK</span>
+                <span>Pupuk Tunggal</span>
+                <span>Mesticote CRF</span>
+              </div>
+            </div>
+          </div>
+          <div class="card-right-col">
+            <div class="card-photo-wrapper">
+              <img src="assets/catalog.jpg" alt="Catalog Pocket Book 2026" class="card-photo-img" loading="eager">
+            </div>
+            <div class="card-circle-arrow" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </div>
+          </div>
+        </article>
+
+        <!-- Card 3: Galleries -->
+        <article class="portal-card" id="card-option-galleries" tabindex="0" role="button" aria-label="Buka Galleries">
+          <div class="card-left-col">
+            <div class="card-icon-bubble">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                <polyline points="21 15 16 10 5 21"></polyline>
+              </svg>
+            </div>
+            <div class="card-text-body">
+              <div class="card-title-row">
+                <h2 class="card-title">Galleries</h2>
+              </div>
+            
+              <p class="card-kicker">EVENTS &bull; ACTIVITIES &bull; STORIES</p>
+              <p class="card-desc">Dokumentasi kebun sawit, aplikasi pemupukan lapangan &amp; edukasi agronomi.</p>
+              <div class="card-feature-pills">
+                <span>Aplikasi Sawit</span>
+                <span>Uji Lapangan</span>
+                <span>Edukasi Agronomi</span>
+              </div>
+            </div>
+          </div>
+          <div class="card-right-col">
+            <div class="card-photo-wrapper">
+              <img src="assets/galleries.jpg" alt="Galleries" class="card-photo-img" loading="eager">
+            </div>
+            <div class="card-circle-arrow" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- =========================================================================
+         VIEW 2: VIDEO COLLECTION VIEW (ABOUT US & GALLERIES)
+         ========================================================================= -->
+    <section class="portal-videos-view" id="portal-videos-view" style="display: none;">
+      
+      <!-- View Breadcrumb & Top Bar -->
+      <div class="view-header-bar">
+        <button type="button" class="back-to-home-btn" id="videos-back-btn" title="Kembali ke Pilihan Menu Utama">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+          </svg>
+          <span>Menu</span>
+        </button>
+
+        <div class="view-title-group">
+          <h2 class="view-section-title" id="videos-view-title">Koleksi Video</h2>
+          <span class="video-counter-badge" id="video-count-badge">Memuat daftar...</span>
+        </div>
+
+        <!-- Tombol Loop Khusus Folder -->
+        <button type="button" class="loop-folder-action-btn" id="loop-folder-action-btn" title="Putar Berurutan Semua Video di Folder Ini">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="17 1 21 5 17 9"></polyline>
+            <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
+            <polyline points="7 23 3 19 7 15"></polyline>
+            <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
+          </svg>
+          <span id="loop-folder-btn-text">Putar Semua</span>
+        </button>
+      </div>
+
+      <div class="filter-bar">
+        <!-- Category Chips -->
+        <div class="category-chips" id="category-chips" role="tablist">
+          <!-- Generated dynamically via JS -->
+        </div>
+
+        <!-- Search Box -->
+        <div class="search-box-wrapper">
+          <svg class="search-svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input 
+            type="text" 
+            id="search-input" 
+            class="search-input" 
+            placeholder="Cari materi video..." 
+            autocomplete="off"
+          >
+        </div>
+      </div>
+
+      <!-- Main Video Grid -->
+      <main class="main-content">
+        <div class="video-grid" id="video-grid">
+          <!-- Video Cards generated dynamically via JS -->
+        </div>
+      </main>
+    </section>
+
+    <!-- =========================================================================
+         VIEW 3: CATALOG & POCKET BOOK 2026 DIGITAL LOOKBOOK
+         ========================================================================= -->
+    <section class="portal-catalog-view" id="portal-catalog-view" style="display: none;">
+
+      <!-- Top Header Bar for Catalog -->
+      <div class="view-header-bar catalog-header-bar">
+        <div class="catalog-header-left">
+          <div class="view-title-group catalog-title-group">
+            <h2 class="view-section-title">Catalog</h2>
+            <span class="catalog-sub-badge">82 Halaman &bull; Pocket Book</span>
+          </div>
+        </div>
+
+        <div class="catalog-top-actions">
+
+          <button type="button" class="catalog-ctrl-btn btn-slideshow" id="catalog-autoflip-btn" title="Putar Slideshow Halaman Otomatis">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" stroke="none" id="catalog-autoflip-svg">
+              <polygon points="6 4 20 12 6 20 6 4"/>
+            </svg>
+            <span id="catalog-autoflip-label">Slideshow</span>
+          </button>
+
+          <button type="button" class="catalog-ctrl-btn btn-fullscreen-primary" id="catalog-fullscreen-btn" title="Buka Katalog Layar Penuh (F)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" id="catalog-fullscreen-svg">
+              <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+            </svg>
+            <span id="catalog-fullscreen-label">Fullscreen</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Center Book Stage -->
+      <div class="catalog-book-stage" id="catalog-book-stage">
+        
+        <!-- Slideshow Active Banner / HUD (Muncul jelas saat Slideshow berjalan) -->
+        <div class="catalog-slideshow-hud" id="catalog-slideshow-hud">
+          <div class="slideshow-hud-status">
+            <span class="slideshow-hud-title">AUTO SLIDESHOW</span>
+          </div>
+          <div class="slideshow-hud-progress-track" id="catalog-slideshow-progress">
+            <div class="catalog-progress-fill" id="catalog-progress-fill"></div>
+          </div>
+          <div class="slideshow-hud-controls">
+            <button type="button" class="hud-speed-btn" id="catalog-speed-btn" title="Kecepatan Slideshow">4 dtk/hal</button>
+            <button type="button" class="hud-stop-btn" id="catalog-hud-stop-btn" title="Hentikan Slideshow">Jeda</button>
+          </div>
+        </div>
+
+        <button type="button" class="book-nav-btn book-nav-prev" id="catalog-prev-btn" aria-label="Halaman sebelumnya">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+        </button>
+
+        <div class="catalog-book-spread" id="catalog-book-spread">
+          <div class="book-page-card page-left" id="catalog-page-left-wrap">
+            <img src="assets/catalog-pages/page-01.jpg" alt="Halaman 1" id="catalog-page-left" class="book-page-img" draggable="false">
+            <span class="page-num-pill" id="catalog-page-left-num">1</span>
+          </div>
+          <div class="catalog-book-spine" id="catalog-book-spine" aria-hidden="true"></div>
+          <div class="book-page-card page-right" id="catalog-page-right-wrap">
+            <img src="assets/catalog-pages/page-02.jpg" alt="Halaman 2" id="catalog-page-right" class="book-page-img" draggable="false">
+            <span class="page-num-pill" id="catalog-page-right-num">2</span>
+          </div>
+        </div>
+
+        <button type="button" class="book-nav-btn book-nav-next" id="catalog-next-btn" aria-label="Halaman berikutnya">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+        </button>
+
+        <!-- Floating Bottom Bar (Normal Counter + Fullscreen Controls) -->
+        <div class="catalog-stage-dock" id="catalog-counter" aria-live="polite">
+          <button type="button" class="dock-fs-only-btn" id="dock-exit-fs-btn" title="Keluar Layar Penuh (Esc)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            <span>Tutup Layar Penuh</span>
+          </button>
+
+          <div class="dock-page-info">
+            <span class="slideshow-pill-tag" id="catalog-slideshow-tag" style="display: none;">
+              <span>AUTO</span>
+            </span>
+            <span class="dock-hal-prefix">Hal</span>
+            <span id="catalog-page-badge">01–02</span>
+            <span class="catalog-counter-total">/ 82</span>
+          </div>
+
+          <button type="button" class="dock-fs-only-btn" id="dock-slideshow-fs-btn" title="Putar / Jeda Slideshow">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none" id="dock-slideshow-fs-svg">
+              <polygon points="6 4 20 12 6 20 6 4"/>
+            </svg>
+            <span id="dock-slideshow-fs-label">Slideshow</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Bottom Filmstrip Bar -->
+      <div class="catalog-filmstrip-bar">
+        <div class="catalog-thumbs-track" id="catalog-thumbs-track"></div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Fullscreen Video Player Modal -->
+  <div class="player-modal" id="player-modal" role="dialog" aria-modal="true">
+    
+    <!-- Player Top Bar Overlay -->
+    <div class="player-header">
+      <button type="button" class="back-btn" id="player-back-btn" aria-label="Kembali ke Menu">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        <span>Kembali</span>
+      </button>
+
+      <!-- Loop & Playback Controls Group -->
+      <div class="player-controls-group">
+        <button type="button" class="player-tool-btn" id="player-prev-btn" title="Video Sebelumnya di Folder Ini" aria-label="Sebelumnya">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="19 20 9 12 19 4 19 20"/><rect x="5" y="4" width="2" height="16"/></svg>
+        </button>
+
+        <!-- Tombol Pengatur Loop (1 Video / Folder Ini / Tanpa Loop) -->
+        <button type="button" class="player-loop-toggle-btn active-single" id="player-loop-btn" title="Klik untuk Mengganti Mode Loop" aria-label="Ganti Mode Loop">
+          <span id="player-loop-icon"></span>
+          <span id="player-loop-label">Loop: 1 Video</span>
+        </button>
+
+        <button type="button" class="player-tool-btn" id="player-next-btn" title="Video Berikutnya di Folder Ini" aria-label="Berikutnya">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="5 4 15 12 5 20 5 4"/><rect x="17" y="4" width="2" height="16"/></svg>
+        </button>
+      </div>
+
+      <!-- Kotak Judul / Nama File -->
+      <div class="player-title-info">
+        <h2 id="player-title">nama_file.mp4</h2>
+        <p id="player-category" style="display: none;"></p>
+      </div>
+    </div>
+
+    <!-- Video Element Container -->
+    <div class="video-container">
+      <video id="main-video" class="main-video" playsinline preload="auto" referrerpolicy="no-referrer">
+        Browser Anda tidak mendukung pemutaran video HTML5.
+      </video>
+      <iframe id="main-iframe" class="main-iframe" allow="autoplay; fullscreen" style="display: none;" referrerpolicy="no-referrer"></iframe>
+
+      <!-- Tombol Putar Tengah Besar -->
+      <button type="button" class="player-center-play-btn" id="player-center-play-btn" aria-label="Putar Video">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="38" height="38">
+          <polygon points="6 3 20 12 6 21 6 3"></polygon>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Minimalist Bottom Progress Bar -->
+    <div class="player-progress-container" id="player-progress-container">
+      <div class="player-progress-bar" id="player-progress-bar"></div>
+    </div>
+  </div>
+
+  <!-- Load Videos Data & Core Script -->
+  <script src="videos-data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

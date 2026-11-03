@@ -60,12 +60,20 @@ const centerPlayBtn = document.getElementById('player-center-play-btn');
 const playerProgressContainer = document.getElementById('player-progress-container');
 const playerProgressBar = document.getElementById('player-progress-bar');
 
-/* Helper: Deteksi dan Ambil File ID Google Drive jika ada */
-function getGoogleDriveId(url) {
-  if (!url || typeof url !== 'string') return null;
-  const match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) ||
-                url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+/* Helper: Deteksi dan Ambil File ID Google Drive jika ada (mendukung URL penuh, raw ID, atau objek video) */
+function getGoogleDriveId(input) {
+  if (!input) return null;
+  if (typeof input === 'object') {
+    return getGoogleDriveId(input.driveId) || getGoogleDriveId(input.driveUrl) || getGoogleDriveId(input.file);
+  }
+  if (typeof input !== 'string') return null;
+  const trimmed = input.trim();
+  const match = trimmed.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) ||
+                trimmed.match(/[?&]id=([a-zA-Z0-9_-]+)/);
   if (match && match[1]) return match[1];
+  if (/^[a-zA-Z0-9_-]{20,60}$/.test(trimmed)) {
+    return trimmed;
+  }
   return null;
 }
 
@@ -1041,13 +1049,14 @@ function renderVideoGrid() {
       thumbContainer.appendChild(previewVideo);
     }
 
-    const driveId = getGoogleDriveId(video.driveId || video.driveUrl || (video.file && video.file.startsWith('http') ? video.file : null));
+    const driveId = getGoogleDriveId(video);
     if (driveId) {
-      // 1. Google Drive Thumbnail Otomatis jika ada driveUrl
+      // 1. Google Drive Thumbnail Otomatis jika ada driveId / driveUrl
       const driveThumb = document.createElement('img');
       driveThumb.className = 'thumbnail-img';
       driveThumb.src = `https://drive.google.com/thumbnail?id=${driveId}&sz=w640`;
       driveThumb.alt = video.title;
+      driveThumb.referrerPolicy = 'no-referrer';
       driveThumb.onload = () => {
         driveThumb.style.display = 'block';
         fallbackEl.style.display = 'none';
@@ -1124,14 +1133,21 @@ function renderVideoGrid() {
 /* ==========================================================================
    4. VIDEO PLAYER MODAL & LOOP CONTROLS
    ========================================================================== */
-/* Helper: Sumber pemutar video merujuk ke Google Drive Preview (CDN ringan) dengan fallback file lokal */
+/* Helper: Gunakan link Google Drive melalui Stream Proxy (/api/stream) agar bermain di <video> asli (Pause, Loop, Progress Bar, Auto-hide 100% aktif) */
 function resolveVideoSource(video) {
-  const driveId = getGoogleDriveId(video.driveId || video.driveUrl || (video.file && video.file.startsWith('http') ? video.file : null));
+  const driveId = getGoogleDriveId(video);
   if (driveId) {
+    // Jika dibuka dari file:/// di lokal, arahkan ke local stream proxy port 3456.
+    // Jika dibuka di Vercel / http(s), gunakan endpoint /api/stream relatif.
+    const streamEndpoint = (window.location.protocol === 'file:')
+      ? `http://localhost:3456/api/stream?id=${driveId}`
+      : `/api/stream?id=${driveId}`;
+
     return {
-      type: 'drive',
-      driveId: driveId,
+      type: 'drive-stream',
+      src: streamEndpoint,
       previewUrl: `https://drive.google.com/file/d/${driveId}/preview`,
+      driveId: driveId,
       localFallback: video.localFile || (video.file && !video.file.startsWith('http') ? video.file : null)
     };
   }
@@ -1146,7 +1162,8 @@ function resolveVideoSource(video) {
   }
   return {
     type: 'local',
-    src: videoPath || video.localFile
+    src: videoPath || video.localFile,
+    driveId: null
   };
 }
 
@@ -1204,62 +1221,55 @@ function playVideo(video) {
 
   const sourceInfo = resolveVideoSource(video);
 
-  if (sourceInfo.type === 'drive') {
-    // 1. Matikan video lokal terlebih dahulu agar tidak membebani memori dan audio
-    if (mainVideoEl) {
-      mainVideoEl.onerror = null;
-      mainVideoEl.pause();
-      mainVideoEl.removeAttribute('src');
-      mainVideoEl.style.display = 'none';
-    }
-    // 2. Tampilkan iframe resmi Google Drive Preview (streaming resmi cepat tanpa download berat)
-    if (mainIframeEl) {
-      mainIframeEl.style.display = 'block';
-      if (mainIframeEl.src !== sourceInfo.previewUrl) {
-        mainIframeEl.src = sourceInfo.previewUrl;
-      }
-    }
-    hideCenterPlayBtn();
+  if (mainIframeEl) {
+    mainIframeEl.style.display = 'none';
+    mainIframeEl.src = '';
+  }
+
+  if (mainVideoEl) {
+    // Hentikan stream video sebelumnya agar tidak membebani bandwidth Wi-Fi
+    mainVideoEl.onerror = null;
+    mainVideoEl.pause();
+    mainVideoEl.style.display = 'block';
+    mainVideoEl.referrerPolicy = 'no-referrer';
+    mainVideoEl.setAttribute('playsinline', '');
+    mainVideoEl.playsInline = true;
+    mainVideoEl.src = sourceInfo.src;
+
     if (playerProgressBar) {
-      playerProgressBar.style.width = '100%';
+      playerProgressBar.style.width = '0%';
     }
-  } else {
-    // Offline / Local File fallback
-    if (mainIframeEl) {
-      mainIframeEl.src = '';
-      mainIframeEl.style.display = 'none';
-    }
-    if (mainVideoEl) {
-      mainVideoEl.onerror = null;
-      mainVideoEl.pause();
-      mainVideoEl.style.display = 'block';
-      mainVideoEl.referrerPolicy = 'no-referrer';
-      mainVideoEl.setAttribute('playsinline', '');
-      mainVideoEl.playsInline = true;
-      mainVideoEl.src = sourceInfo.src;
 
-      if (playerProgressBar) {
-        playerProgressBar.style.width = '0%';
-      }
-
-      // Coba putar otomatis
-      const playPromise = mainVideoEl.play();
-      if (playPromise !== undefined) {
-        playPromise.then(() => {
-          hideCenterPlayBtn();
-          showPlayerOverlay();
-        }).catch(err => {
-          console.warn("Autoplay ditahan browser, klik/sentuh layar untuk memutar:", err);
-          showCenterPlayBtn();
-        });
-      }
-
-      // Penanganan error jika file video gagal dimuat
-      mainVideoEl.onerror = (e) => {
-        console.warn("Video load error:", e, mainVideoEl.error);
+    // Coba putar otomatis
+    const playPromise = mainVideoEl.play();
+    if (playPromise !== undefined) {
+      playPromise.then(() => {
+        hideCenterPlayBtn();
+        showPlayerOverlay();
+      }).catch(err => {
+        console.warn("Autoplay ditahan browser, klik/sentuh layar untuk memutar:", err);
         showCenterPlayBtn();
-      };
+      });
     }
+
+    // Fallback otomatis jika stream proxy lokal belum menyala saat dibuka via file:///
+    let triedLocalFallback = false;
+    mainVideoEl.onerror = (e) => {
+      console.warn("Video stream error:", e);
+      if (!triedLocalFallback && sourceInfo.localFallback && window.location.protocol === 'file:') {
+        triedLocalFallback = true;
+        mainVideoEl.src = sourceInfo.localFallback;
+        mainVideoEl.play().catch(() => showCenterPlayBtn());
+      } else if (sourceInfo.driveId && mainIframeEl) {
+        console.warn("Fallback ke iframe preview Google Drive...");
+        mainVideoEl.style.display = 'none';
+        hideCenterPlayBtn();
+        mainIframeEl.style.display = 'block';
+        mainIframeEl.src = sourceInfo.previewUrl;
+      } else {
+        showCenterPlayBtn();
+      }
+    };
   }
 
   playerModalEl.classList.add('active');
